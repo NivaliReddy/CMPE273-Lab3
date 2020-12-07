@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const Order = require('./../../../mongoModels/orderView');
-const User = require('./../../../mongoModels/userView');
-const Restaurant = require('./../../../mongoModels/restaurantView');
+const Order = require('../../../models/orderView');
+const User = require('../../../models/userView');
+const Restaurant = require('../../../models/restaurantView');
 
 // router.post('/', async (req, res) => {
 //     try {        

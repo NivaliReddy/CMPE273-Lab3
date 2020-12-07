@@ -3,6 +3,7 @@ const Schema = mongoose.Schema;
 const eventView = require("./eventView");
 const reviewView = require("./reviewView");
 const orderView = require("./orderView");
+const menuView = require("./menuView");
 
 const RestaurantView = new Schema({
   restaurantId: String,
@@ -19,31 +20,10 @@ const RestaurantView = new Schema({
   cuisines: String,
   modeOfDelivery: String,
   averageRating: String,
-  menu: [
-    {
-      dishId: String,
-      dishName: String,
-      mainIngredients: String,
-      pictures: String,
-      price: Number,
-      description: String,
-      dishCategory: String,
-    },
-  ],
 
-  reviews: [
-    {
-      reviewId: String,
-      date: String,
-      rating: String,
-      review: String,
-      user: {
-        userId: String,
-        userName: String,
-        profilePic: String
-      }
-    },
-  ],
+  menu : [menuView.schema],
+
+  reviews : [reviewView.schema],
 
   events : [eventView.schema],
 

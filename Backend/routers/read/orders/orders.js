@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Order = require('../../../mongoModels/orderView');
+const Order = require('../../../models/orderView');
 
 // router.get('/', async (req, res) => {
 //     try {

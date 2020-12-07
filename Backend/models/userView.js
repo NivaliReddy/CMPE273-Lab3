@@ -25,11 +25,23 @@ const UserView = new Schema({
   picture: String,
   favorites: String,
 
-  reviews : [reviewView.schema],
+  reviews: [reviewView.schema],
 
-  events : [eventView.schema],
+  events: [eventView.schema],
 
-  orders : [orderView.schema]
+  orders: [orderView.schema],
+
+  following: [{
+    userId: String,
+    userName: String,
+    picture: String
+  }],
+
+  followers: [{
+    userId: String,
+    userName: String,
+    picture: String
+  }]
 });
 
 const userView = mongoose.model("userview", UserView);

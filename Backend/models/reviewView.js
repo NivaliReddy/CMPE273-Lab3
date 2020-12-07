@@ -6,8 +6,12 @@ const ReviewView = new Schema({
     date: String,
     rating: String,
     review: String,
-    userId: String,
-    restaurantId: String
+    restaurantId: String,
+    user: {
+        userId: String,
+        userName: String,
+        picture: String
+    }
 })
 
 const reviewView = mongoose.model('reviewview', ReviewView);

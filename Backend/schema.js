@@ -8,6 +8,22 @@ const {
     GraphQLInputObjectType
 } = require('graphql');
 
+const getOrdersByRestaurantId = require('./QueryResolvers/getOrdersByRestaurantId');
+const getMenuByRestaurantId = require('./QueryResolvers/getMenuByRestaurantId');
+const getAllRestaurants = require('./QueryResolvers/getAllRestaurants');
+const getRestaurantById = require('./QueryResolvers/getRestaurantById');
+const getRestaurantsByName = require('./QueryResolvers/getRestaurantByName');
+const getRestaurantsByLocation = require('./QueryResolvers/getRestaurantsByLocation');
+const getUserById = require('./QueryResolvers/getUserById');
+
+const addDish = require('./mutations/addDish');
+const placeOrder = require('./mutations/placeOrder');
+const restaurantLogin = require('./mutations/restaurantLogin');
+const userLogin = require('./mutations/userLogin');
+const updateOrderStatus = require('./mutations/updateOrderStatus');
+const updateRestaurantById = require('./mutations/updateRestaurantById');
+const updateUserById = require('./mutations/updateUserById');
+
 const User = new GraphQLObjectType({
     name: "user",
     fields: () => ({
@@ -252,18 +268,20 @@ const Menu = new GraphQLObjectType({
     })
 });
 
-const RootQueryType = new GraphQLObjectType({
-    name: "RootQueryType",
+const RootQuery = new GraphQLObjectType({
+    name: "RootQuery",
     description: "Root Query",
     fields: () => ({
         user: {
             type: User,
             description: "Get User details by user Id",
             args: {
-                id: new GraphQLNonNull(GraphQLString)
+                id: {
+                    type: new GraphQLNonNull(GraphQLString)
+                }
             },
-            resolve: () => {
-                return getUserByUserId();
+            resolve: (parent, args) => {
+                return getUserById(args.id);
             }
         },
         restaurants: {
@@ -277,62 +295,67 @@ const RootQueryType = new GraphQLObjectType({
             type: Restaurant,
             description: "Get Restaurant details By Restaurant Id",
             args: {
-                id: new GraphQLNonNull(GraphQLString)
+                id: {
+                    type: new GraphQLNonNull(GraphQLString)
+                }
             },
-            resolve: () => {
+            resolve: (parent, args) => {
                 return getRestaurantById(args.id);
             }
         },
+        restaurantsByName: {
+            type: new GraphQLList(Restaurant),
+            description: "Get Restaurant details By Restaurant Name",
+            args: {
+                restaurantName: {
+                    type: new GraphQLNonNull(GraphQLString)
+                }
+            },
+            resolve: (parent, args) => {
+                return getRestaurantsByName(args.restaurantName);
+            }
+        },
+        restaurantsByLocation: {
+            type: new GraphQLList(Restaurant),
+            description: "Get Restaurants By Location",
+            args: {
+                location: {
+                    type: new GraphQLNonNull(GraphQLString)
+                }
+            },
+            resolve: (parent, args) => {
+                return getRestaurantsByLocation(args.location);
+            }
+        },
         dishes: {
-            type: Menu,
+            type: new GraphQLList(Menu),
             description: "Get dishes of a restaurant by restaurantId",
             args: {
-                id: new GraphQLNonNull(GraphQLString)
+                id: {
+                    type: new GraphQLNonNull(GraphQLString)
+                }
             },
-            resolve: () => {
+            resolve: (parent, args) => {
                 return getMenuByRestaurantId(args.id);
             }
         },
         orders: {
-            type: Order,
+            type: new GraphQLList(Order),
             description: "Get orders of a restaurant by restaurantId",
             args: {
-                id: new GraphQLNonNull(GraphQLString)
+                id: {
+                    type: new GraphQLNonNull(GraphQLString)
+                }
             },
-            resolve: () => {
-                return getOrderByRestaurantId(args.id);
+            resolve: (parent, args) => {
+                return getOrdersByRestaurantId(args.id);
             }
         }
-
     })
 });
 
-const UserInput = new GraphQLInputObjectType({
+const UserInputType = new GraphQLInputObjectType({
     name: "UserInput",
-    fields: () => ({
-        emailId: {
-            type: GraphQLString
-        },
-        password: {
-            type: GraphQLString
-        }
-    })
-});
-
-const RestaurantInput = new GraphQLInputObjectType({
-    name: "RestaurantInput",
-    fields: () => ({
-        emailId: {
-            type: GraphQLString
-        },
-        password: {
-            type: GraphQLString
-        }
-    })
-});
-
-const UserProfileInputType = new GraphQLInputObjectType({
-    name: "UserProfileInput",
     fields: () => ({
         _id: {
             type: GraphQLString
@@ -390,12 +413,24 @@ const UserProfileInputType = new GraphQLInputObjectType({
         },
         favorites: {
             type: GraphQLString
+        },
+        reviews: {
+            type: new GraphQLList(ReviewInputType),
+            description: "All reviews given by the user"
+        },
+        events: {
+            type: new GraphQLList(EventInputType),
+            description: "All events registered by the user"
+        },
+        orders: {
+            type: new GraphQLList(OrderInputType),
+            description: "All orders placed by the user"
         }
     })
 });
 
-const RestaurantProfileInputType = new GraphQLInputObjectType({
-    type: "Restaurant",
+const RestaurantInputType = new GraphQLInputObjectType({
+    name: "Restaurant",
     fields: () => ({
         _id: {
             type: GraphQLString
@@ -438,12 +473,28 @@ const RestaurantProfileInputType = new GraphQLInputObjectType({
         },
         averageRating: {
             type: GraphQLString
+        },
+        menu: {
+            type: new GraphQLList(MenuInputType),
+            description: "Dishes in the restaurant"
+        },
+        reviews: {
+            type: new GraphQLList(ReviewInputType),
+            description: "All reviews given for the restaurant"
+        },
+        events: {
+            type: new GraphQLList(EventInputType),
+            description: "All events hosted by the restaurant"
+        },
+        orders: {
+            type: new GraphQLList(OrderInputType),
+            description: "All orders placed in the restaurant"
         }
     })
 });
 
-const AddDishInputType = new GraphQLInputObjectType({
-    type: "Menu",
+const MenuInputType = new GraphQLInputObjectType({
+    name: "Menu",
     fields: () => ({
         _id: {
             type: GraphQLString
@@ -467,16 +518,16 @@ const AddDishInputType = new GraphQLInputObjectType({
             type: GraphQLString
         },
         restaurantId: {
-            type: GraphQLString
+            type: RestaurantInputType
         }
     })
 });
 
-const PlaceOrderInputType = new GraphQLInputObjectType({
-    type: "Order",
+const OrderInputType = new GraphQLInputObjectType({
+    name: "Order",
     fields: () => ({
         _id: {
-            type: String
+            type: GraphQLString
         },
         orderDate: {
             type: GraphQLString
@@ -489,32 +540,71 @@ const PlaceOrderInputType = new GraphQLInputObjectType({
         },
         modeOfDelivery: {
             type: GraphQLString
+        },
+        userId: {
+            type: UserInputType
+        },
+        restaurantId: {
+            type: RestaurantInputType
         }
     })
 });
 
-const UpdateDeliveryStatusOfOrderInputType = new GraphQLInputObjectType({
-    type: "Order",
+const EventInputType = new GraphQLInputObjectType({
+    name: "Event",
     fields: () => ({
         _id: {
-            type: String
-        },
-        orderDate: {
             type: GraphQLString
         },
-        orderStatus: {
+        eventName: {
             type: GraphQLString
         },
-        orderTime: {
+        startDate: {
             type: GraphQLString
         },
-        modeOfDelivery: {
+        endDate: {
+            type: GraphQLString
+        },
+        city: {
+            type: GraphQLString
+        },
+        state: {
+            type: GraphQLString
+        },
+        country: {
+            type: GraphQLString
+        },
+        description: {
+            type: GraphQLString
+        },
+        time: {
+            type: GraphQLString
+        },
+        hashTags: {
             type: GraphQLString
         }
     })
-})
+});
 
-const RootMutationType = new GraphQLObjectType({
+const ReviewInputType = new GraphQLInputObjectType({
+    name: "Review",
+    fields: () => ({
+        _id: {
+            type: GraphQLString
+        },
+        date: {
+            type: GraphQLString
+        },
+        rating: {
+            type: GraphQLString
+        },
+        review: {
+            type: GraphQLString
+        }
+    })
+});
+
+const Mutation = new GraphQLObjectType({
     name: "Mutation",
     description: "Root Mutation",
     fields: () => ({
@@ -523,7 +613,7 @@ const RootMutationType = new GraphQLObjectType({
             description: "User Login",
             args: {
                 userDetails: {
-                    type: new GraphQLNonNull(GraphQLString)
+                    type: UserInputType
                 }
             },
             resolve: (parent, args) => {
@@ -535,11 +625,11 @@ const RootMutationType = new GraphQLObjectType({
             description: "Restaurant Login",
             args: {
                 restaurantDetails: {
-                    type: new GraphQLNonNull(GraphQLString)
+                    type: RestaurantInputType
                 }
             },
             resolve: (parent, args) => {
-                return userLogin(args.restaurantDetails);
+                return restaurantLogin(args.restaurantDetails);
             }
         },
         updateUserProfile: {
@@ -547,14 +637,11 @@ const RootMutationType = new GraphQLObjectType({
             description: "Update User Profile",
             args: {
                 user: {
-                    type: new GraphQLNonNull(GraphQLString)
-                },
-                id: {
-                    type: new GraphQLNonNull(GraphQLString)
+                    type: new GraphQLNonNull(UserInputType)
                 }
             },
             resolve: (parent, args) => {
-                return updateUserById(args.id, args.user);
+                return updateUserById(args.user);
             }
         },
         updateRestaurantProfile: {
@@ -562,14 +649,11 @@ const RootMutationType = new GraphQLObjectType({
             description: "Update Restaurant Profile",
             args: {
                 restaurant: {
-                    type: new GraphQLNonNull(GraphQLString)
-                },
-                id: {
-                    type: new GraphQLNonNull(GraphQLString)
+                    type: new GraphQLNonNull(RestaurantInputType)
                 }
             },
             resolve: (parent, args) => {
-                return updateRestaurantById(args.id, args.restaurant);
+                return updateRestaurantById(args.restaurant);
             }
         },
         addDish: {
@@ -577,14 +661,11 @@ const RootMutationType = new GraphQLObjectType({
             description: "Add dish",
             args: {
                 menu: {
-                    type: new GraphQLNonNull(GraphQLString)
-                },
-                id: {
-                    type: new GraphQLNonNull(GraphQLString)
+                    type: new GraphQLNonNull(MenuInputType)
                 }
             },
             resolve: (parent, args) => {
-                return addDish(args.id, args.menu);
+                return addDish(args.menu);
             }
         },
         placeOrder: {
@@ -592,37 +673,34 @@ const RootMutationType = new GraphQLObjectType({
             description: "Place an order",
             args: {
                 order: {
-                    type: new GraphQLNonNull(GraphQLString)
-                },
-                id: {
-                    type: new GraphQLNonNull(GraphQLString)
+                    type: new GraphQLNonNull(OrderInputType)
                 }
             },
             resolve: (parent, args) => {
-                return placeOrder(args.id, args.order);
+                return placeOrder(args.order);
             }
         },
         updateOrderStatus: {
             type: Order,
             description: "Update Order Status",
             args: {
-                order: {
+                id: {
                     type: new GraphQLNonNull(GraphQLString)
                 },
-                id: {
+                orderStatus: {
                     type: new GraphQLNonNull(GraphQLString)
                 }
             },
             resolve: (parent, args) => {
-                return updateOrderStatus(args.id, args.order);
+                return updateOrderStatus(args.id, args.orderStatus);
             }
         }
     })
 });
 
 const schema = new GraphQLSchema({
-    query: RootQueryType,
-    //mutation: RootMutationType
+    query: RootQuery,
+    mutation: Mutation
 });
 
 module.exports = schema;

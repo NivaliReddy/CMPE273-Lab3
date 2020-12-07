@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const Event = require('./../../../mongoModels/eventView');
-const User = require('./../../../mongoModels/userView');
-const Restaurant = require('./../../../mongoModels/restaurantView');
+const Event = require('../../../models/eventView');
+const User = require('../../../models/userView');
+const Restaurant = require('../../../models/restaurantView');
 
 router.post('/:_id', async (req, res) => {
     try {        

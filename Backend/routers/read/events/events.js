@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Event = require('../../../mongoModels/eventView');
+const Event = require('../../../models/eventView');
 
 router.get('/', async (req, res) => {
     try {

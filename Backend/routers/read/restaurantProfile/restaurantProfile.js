@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const RestaurantView = require('../../../mongoModels/restaurantView');
+const RestaurantView = require('../../../models/restaurantView');
 
 router.get('/:restaurantId', async (req, res) => {
     try {

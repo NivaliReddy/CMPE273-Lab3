@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 mongoose.connect('mongodb+srv://nivali:root@cluster0.iurqf.mongodb.net/yelp?retryWrites=true&w=majority', {
     useNewUrlParser: true,
@@ -6,4 +6,3 @@ mongoose.connect('mongodb+srv://nivali:root@cluster0.iurqf.mongodb.net/yelp?retr
     useFindAndModify: false,
     useUnifiedTopology: true
 })
-//console.log("Connection successful")
