@@ -12,7 +12,7 @@ const userLogin = async (loginDetails) => {
     }
     return user;
   } catch (e) {
-    throw e
+    throw e;
   }
 }
 

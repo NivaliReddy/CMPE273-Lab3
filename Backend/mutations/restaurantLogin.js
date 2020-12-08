@@ -2,18 +2,17 @@ const Restaurant = require('../models/restaurantView')
 
 const restaurantLogin = async (loginDetails) => {
     try {
-        const user = await Restaurant.findOne(loginDetails)
-        if(!user){
-            throw "user not found"
+        const restaurant = await Restaurant.findOne(loginDetails);
+        if (!restaurant) {
+            throw "Restaurant not found";
         }
-        else if(loginDetails.password != user.password){
-            throw "Wrong password"
+        else if (loginDetails.password != restaurant.password) {
+            throw "Wrong password";
         }
-        return user;
+        return restaurant;
     } catch (e) {
         throw e
     }
-
 }
 
-module.exports=restaurantLogin
+module.exports = restaurantLogin;

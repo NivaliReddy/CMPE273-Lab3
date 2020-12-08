@@ -12,17 +12,20 @@ const getOrdersByRestaurantId = require('./QueryResolvers/getOrdersByRestaurantI
 const getMenuByRestaurantId = require('./QueryResolvers/getMenuByRestaurantId');
 const getAllRestaurants = require('./QueryResolvers/getAllRestaurants');
 const getRestaurantById = require('./QueryResolvers/getRestaurantById');
-const getRestaurantsByName = require('./QueryResolvers/getRestaurantByName');
+const getRestaurantByName = require('./QueryResolvers/getRestaurantByName');
+const restaurantSearch = require('./QueryResolvers/restaurantSearch');
 const getRestaurantsByLocation = require('./QueryResolvers/getRestaurantsByLocation');
 const getUserById = require('./QueryResolvers/getUserById');
 
 const addDish = require('./mutations/addDish');
 const placeOrder = require('./mutations/placeOrder');
+const restaurantSignup = require('./mutations/restaurantSignup');
 const restaurantLogin = require('./mutations/restaurantLogin');
+const userSignup = require('./mutations/userSignup');
 const userLogin = require('./mutations/userLogin');
 const updateOrderStatus = require('./mutations/updateOrderStatus');
-const updateRestaurantById = require('./mutations/updateRestaurantById');
-const updateUserById = require('./mutations/updateUserById');
+const updateRestaurantProfile = require('./mutations/updateRestaurantProfile');
+const updateUserProfile = require('./mutations/updateUserProfile');
 
 const User = new GraphQLObjectType({
     name: "user",
@@ -303,7 +306,7 @@ const RootQuery = new GraphQLObjectType({
                 return getRestaurantById(args.id);
             }
         },
-        restaurantsByName: {
+        restaurantByName: {
             type: new GraphQLList(Restaurant),
             description: "Get Restaurant details By Restaurant Name",
             args: {
@@ -312,7 +315,7 @@ const RootQuery = new GraphQLObjectType({
                 }
             },
             resolve: (parent, args) => {
-                return getRestaurantsByName(args.restaurantName);
+                return getRestaurantByName(args.restaurantName);
             }
         },
         restaurantsByLocation: {
@@ -327,7 +330,22 @@ const RootQuery = new GraphQLObjectType({
                 return getRestaurantsByLocation(args.location);
             }
         },
-        dishes: {
+        restaurantSearch: {
+            type: new GraphQLList(Restaurant),
+            description: "Get Restaurants By Location",
+            args: {
+                restaurantName: {
+                    type: new GraphQLNonNull(GraphQLString)
+                },
+                location: {
+                    type: new GraphQLNonNull(GraphQLString)
+                }
+            },
+            resolve: (parent, args) => {
+                return restaurantSearch(args);
+            }
+        },
+        menu: {
             type: new GraphQLList(Menu),
             description: "Get dishes of a restaurant by restaurantId",
             args: {
@@ -518,7 +536,7 @@ const MenuInputType = new GraphQLInputObjectType({
             type: GraphQLString
         },
         restaurantId: {
-            type: RestaurantInputType
+            type: GraphQLString
         }
     })
 });
@@ -542,10 +560,10 @@ const OrderInputType = new GraphQLInputObjectType({
             type: GraphQLString
         },
         userId: {
-            type: UserInputType
+            type: GraphQLString
         },
         restaurantId: {
-            type: RestaurantInputType
+            type: GraphQLString
         }
     })
 });
@@ -620,8 +638,20 @@ const Mutation = new GraphQLObjectType({
                 return userLogin(args.userDetails);
             }
         },
-        restaurantLogin: {
+        userSignup: {
             type: User,
+            description: "User Signup",
+            args: {
+                userDetails: {
+                    type: UserInputType
+                }
+            },
+            resolve: (parent, args) => {
+                return userSignup(args.userDetails);
+            }
+        },
+        restaurantLogin: {
+            type: Restaurant,
             description: "Restaurant Login",
             args: {
                 restaurantDetails: {
@@ -632,28 +662,40 @@ const Mutation = new GraphQLObjectType({
                 return restaurantLogin(args.restaurantDetails);
             }
         },
+        restaurantSignup: {
+            type: Restaurant,
+            description: "Restaurant Signup",
+            args: {
+                restaurantDetails: {
+                    type: RestaurantInputType
+                }
+            },
+            resolve: (parent, args) => {
+                return restaurantSignup(args.restaurantDetails);
+            }
+        },
         updateUserProfile: {
             type: User,
             description: "Update User Profile",
             args: {
-                user: {
+                userDetails: {
                     type: new GraphQLNonNull(UserInputType)
                 }
             },
             resolve: (parent, args) => {
-                return updateUserById(args.user);
+                return updateUserProfile(args.userDetails);
             }
         },
         updateRestaurantProfile: {
             type: Restaurant,
             description: "Update Restaurant Profile",
             args: {
-                restaurant: {
+                restaurantDetails: {
                     type: new GraphQLNonNull(RestaurantInputType)
                 }
             },
             resolve: (parent, args) => {
-                return updateRestaurantById(args.restaurant);
+                return updateRestaurantProfile(args.restaurantDetails);
             }
         },
         addDish: {

@@ -1,14 +1,14 @@
-const User = require('../mongoModels/user')
+const User = require('../models/userView');
 
 const userSignup = async (signupDetails) => {
-    const user = new Restaurant(signupDetails)
+    const user = new User(signupDetails);
     try {
-        await user.save()
+        await user.save();
+        console.log(user);
         return user;
     } catch (e) {
-        console.log(e)
+        console.log(e);
     }
 }
 
-
-module.exports=userSignup
+module.exports = userSignup;

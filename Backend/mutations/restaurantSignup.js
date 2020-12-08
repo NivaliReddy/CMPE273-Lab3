@@ -1,13 +1,13 @@
-const Restaurant = require('../mongoModels/restaurantView')
+const Restaurant = require('../models/restaurantView');
 
 const restaurantSignup = async (signupDetails) => {
-    const user = new Restaurant(signupDetails)
+    const restaurant = new Restaurant(signupDetails);
     try {
-        await user.save()
-        return user;
+        await restaurant.save();
+        return restaurant;
     } catch (e) {
         console.log(e)
     }
 }
 
-module.exports=restaurantSignup
+module.exports = restaurantSignup;

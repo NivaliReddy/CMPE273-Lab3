@@ -1,18 +1,18 @@
 const Menu = require("../models/menuView");
 const Restaurant = require("../models/restaurantView");
 
-postDish = async (createDish) => {
+addDish = async (createDish) => {
   try {
-    const newdish = Menu.create(createDish);
+    console.log("Inside add dish")
+    const newdish = await Menu.create(createDish);
     const restaurantView = await Restaurant.findById(createDish.restaurantId);
     await restaurantView.menu.push(newdish);
     await restaurantView.save();
-    console.log(restaurantView);
-    console.log(newdish);
-    return restaurantView;
+    //console.log(newdish);
+    return newdish;
   } catch (e) {
     console.log(e);
   }
 };
 
-module.exports = postDish;
+module.exports = addDish;
