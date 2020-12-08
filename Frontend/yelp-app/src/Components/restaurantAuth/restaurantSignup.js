@@ -6,54 +6,71 @@ import { connect } from 'react-redux';
 const jwt_decode = require('jwt-decode');
 
 class RestaurantSignup extends Component {
-    state = {
-       restaurantName:"",
-        emailId: "",
-        password: "",
-        zipCode: ""
-    }
-
-    restaurantName = (e) => {
-      this.setState({ restaurantName: e.target.value })
+  state = {
+    restaurantName: "",
+    emailId: "",
+    password: "",
+    zipCode: ""
   }
-    onChangeEmail = (e) => {
-        this.setState({ emailId: e.target.value })
-    }
-    onChangePassword = (e) => {
-        this.setState({ password: e.target.value })
-    }
-    onChangeLocation = (e) => {
-        this.setState({ location: e.target.value })
+
+  restaurantName = (e) => {
+    this.setState({ restaurantName: e.target.value })
+  }
+  onChangeEmail = (e) => {
+    this.setState({ emailId: e.target.value })
+  }
+  onChangePassword = (e) => {
+    this.setState({ password: e.target.value })
+  }
+  onChangeLocation = (e) => {
+    this.setState({ location: e.target.value })
+  }
+
+  onSignup = async (e) => {
+    let data = {
+      restaurantName: this.state.restaurantName,
+      emailId: this.state.emailId,
+      password: this.state.password,
+      location: this.state.location
     }
 
-    onSignup = async (e) => {
-        let data = {
-            restaurantName:this.state.restaurantName,
-            emailId: this.state.emailId,
-            password: this.state.password,
-            location: this.state.location
+    await this.props.ressignup(data);
+    console.log(this.props.restaurantSignupResponse);
+    if (this.props.restaurantSignupResponse.status === 200) {
+      var token = this.props.restaurantSignupResponse.data;
+      localStorage.setItem("token", token);
+
+      var decoded = jwt_decode(token.split(' ')[1]);
+      const restaurantdata = JSON.parse(decoded.restaurant);
+      console.log(restaurantdata)
+      sessionStorage.setItem('id', restaurantdata._id)
+      sessionStorage.setItem('isLoggedIn', true)
+      this.setState({ redirect: <Redirect to="/" /> })
+    }
+    else {
+      window.alert("User already exists!");
+    }
+  }
+
+  signup = async (e) => {
+    var headers = new Headers();
+    e.preventDefault();
+    const data = {
+        restaurantName: this.state.restaurantName,
+        email: this.state.emailId,
+        password: this.state.password,
+        location: this.state.location
+    };
+    axios.defaults.withCredentials = true;
+    console.log(data);
+    let response = await this.props.restaurantSignupMutation({
+        variables: {
+            restaurantDetails: data
         }
-
-    //API Call here
-
-
-        await this.props.ressignup(data);
-        console.log(this.props.restaurantSignupResponse);
-        if(this.props.restaurantSignupResponse.status ===200){
-          var token = this.props.restaurantSignupResponse.data;
-          localStorage.setItem("token", token);
-          
-          var decoded = jwt_decode(token.split(' ')[1]);
-          const restaurantdata = JSON.parse(decoded.restaurant);
-          console.log(restaurantdata)
-            sessionStorage.setItem('id',restaurantdata._id)
-            sessionStorage.setItem('isLoggedIn',true)
-            this.setState({redirect: <Redirect to="/" />})
-        }
-        else{
-            window.alert("User already exists!");
-        }
-    }
+    })
+    let restaurant = { ...response.data.restaurantSignup }
+    this.props.onLogin(userType, restaurant);
+};
 
   render = () => {
     return (<div>
@@ -65,7 +82,7 @@ class RestaurantSignup extends Component {
             <div style={{ textAlign: "center", marginBottom: "50px" }}>
               <Row>
                 <Col md={12} style={{ color: "red", fontSize: "30px" }}>
-                  Business Sign Up for Yelp 
+                  Business Sign Up for Yelp
         </Col>
               </Row>
             </div>
@@ -122,9 +139,25 @@ class RestaurantSignup extends Component {
   }
 }
 
+const restaurantSignupMutation = gql`
+mutation login($restaurantDetails:RestaurantInputType){
+    restaurantLogin(restaurantDetails:$restaurantDetails)
+    {
+      restaurantName
+      emailId
+      location
+    }
+  }
+`;
+
 const mapStateToProps = (state) => {
-  return { restaurantDetails : state.restaurantDetails,
-    restaurantSignupResponse: state.restaurantSignupResponse }
+  return {
+    restaurantDetails: state.restaurantDetails,
+    restaurantSignupResponse: state.restaurantSignupResponse
+  }
 }
 
-export default connect(mapStateToProps, { ressignup })(RestaurantSignup);
+export default compose(
+  graphql(restaurantSignupMutation, { name: "restaurantSignupMutation" }),
+  connect(mapStateToProps, { ressignup })(RestaurantSignup)
+);

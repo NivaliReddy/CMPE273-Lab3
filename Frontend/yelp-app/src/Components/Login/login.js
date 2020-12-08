@@ -4,6 +4,9 @@ import axios from 'axios';
 import { login } from '../../store/actions/index';
 import { connect } from 'react-redux';
 import { Redirect } from "react-router";
+import { graphql } from 'react-apollo'
+import { gql } from 'apollo-boost';
+import { compose } from "redux";
 
 const jwt_decode = require('jwt-decode');
 
@@ -31,7 +34,7 @@ class Login extends Component {
     if (this.props.loginResponse.status === 200) {
       var token = this.props.loginResponse.data;
       localStorage.setItem("token", token);
-      
+
       var decoded = jwt_decode(token.split(' ')[1]);
       const userdata = JSON.parse(decoded.user);
       console.log(userdata)
@@ -42,9 +45,24 @@ class Login extends Component {
     else {
       window.alert("Invalid credentials!");
     }
-
   }
 
+  userLogin = async (e, userType) => {
+    e.preventDefault();
+    const data = {
+      email: this.state.emailId,
+      password: this.state.password
+    };
+
+    let response = await this.props.userLoginMutation({
+      variables: {
+        userDetails: data
+      }
+    })
+
+    let user = { ...response.data.userLogin }
+    this.props.onLogin(userType, user);
+  };
 
   render = () => {
     return <div>
@@ -107,9 +125,26 @@ class Login extends Component {
   }
 }
 
+const userLoginMutation = gql`
+mutation login($userDetails:UserInputType){
+    userLogin(userDetails:$userDetails)
+    {
+      firstName
+      lastName
+      emailId
+      zipCode
+    }
+  }
+`;
+
 const mapStateToProps = (state) => {
-  return { userDetails: state.userDetails,
-  loginResponse: state.loginResponse }
+  return {
+    userDetails: state.userDetails,
+    loginResponse: state.loginResponse
+  }
 }
 
-export default connect(mapStateToProps, { login })(Login);
+export default compose(
+  graphql(userLoginMutation, { name: "userLoginMutation" }),
+  connect(mapStateToProps, { login })(Login)
+);

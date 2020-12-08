@@ -4,6 +4,8 @@ import { profile , uploadUserProfile} from '../../store/actions/index';
 import axios from 'axios';
 import { connect } from 'react-redux';
 import { Redirect } from "react-router";
+import { graphql } from 'react-apollo';
+import { gql } from 'apollo-boost';
 
 class Profile extends Component {
     state={
@@ -111,6 +113,42 @@ class Profile extends Component {
     componentDidMount=()=>{
         this.setState({...this.props.userDetails.data})
     }
+
+    save = async () => {
+        const data = {
+            firstName: this.state.firstName,
+            lastName: this.state.lastName,
+            emailId: this.state.emailId,
+            nickName: this.state.nickName,
+            city: this.state.city,
+            state: this.state.state,
+            country: this.state.country,
+            zipCode: this.state.zipCode,
+            phoneNumber: this.state.phoneNumber,
+            findMeIn: this.state.findMeIn,
+            gender: this.state.gender,
+            headline: this.state.headline,
+            favorites: this.state.favorites,
+            myWebsite: this.state.myWebsite,
+            thingsILove: this.state.thingsILove,
+            yelpingSince: this.state.yelpingSince,
+            picture: this.state.picture
+        };
+
+        console.log(this.props)
+        let response = await this.props.updateUserProfile({
+            variables: {
+                userDetails: data,
+                id: this.state.firstName
+            }
+        })
+        console.log(response);
+
+        this.props.onSave(response.data.updateUserProfile)
+        this.editDescCancel();
+        this.editContactCancel();
+        this.editLocCancel();
+    };
 
     render = () => {
         console.log(this.props.userDetails)
@@ -292,8 +330,36 @@ class Profile extends Component {
     }
 }
 
+const updateUserProfile = gql`
+mutation updateUserProfile($userDetails:userInput!,$id:String!){
+    updateUserProfile(user:$userDetails,id:$id)
+    {
+        _id
+        firstName
+        lastName
+        emailId
+        nickName
+        city
+        state
+        country
+        zipCode
+        phoneNumber
+        findmeIn
+        gender
+        headline
+        favorites
+        myWebsite
+        thingsILove
+        yelpingSince
+        picture
+    }
+  }
+`;
+
 const mapStateToProps = (state) => {
     return { userDetails: state.userDetails, isLoggedIn:state.isLoggedIn }
 }
 
-export default connect(mapStateToProps, { profile })(Profile);
+export default compose(graphql(updateUserProfile, { name: "updateUserProfile" }),
+    connect(mapStateToProps, { profile })(Profile)
+);

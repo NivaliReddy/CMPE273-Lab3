@@ -4,14 +4,9 @@ import { profileFetch } from '../store/actions/index';
 import { connect } from 'react-redux';
 import { Redirect } from "react-router";
 import { BsPencil, BsStarFill, BsImage } from "react-icons/bs";
-
 import Review from './Reviews/reviews'
 import Event from './event/eventList'
-
 import { Link } from 'react-router-dom';
-
-
-
 
 class Profile extends Component {
     state = {
@@ -291,4 +286,6 @@ const mapStateToProps = (state) => {
     return { userProfile: state.userProfile, isLoggedIn: state.isLoggedIn }
 }
 
-export default connect(mapStateToProps, { profileFetch })(Profile);
+export default compose(graphql(updateUserProfile, { name: "updateUserProfile" }),
+    connect(mapStateToProps, { profileFetch })(Profile)
+);

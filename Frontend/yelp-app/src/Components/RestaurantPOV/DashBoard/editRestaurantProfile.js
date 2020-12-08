@@ -3,6 +3,8 @@ import { Form, Container, Row, Col, Button, Image } from "react-bootstrap";
 import { restaurantProfile } from '../../../store/actions/index';
 import { connect } from 'react-redux';
 import { Redirect } from "react-router";
+import { graphql } from 'react-apollo';
+import { gql } from 'apollo-boost';
 
 class RestaurantProfile extends Component {
     state={
@@ -34,6 +36,34 @@ class RestaurantProfile extends Component {
 
         }
     }
+
+    save = async () => {
+        const data = {
+            restaurantName: this.state.restaurantName,
+            emailId: this.state.emailId,
+            location: this.state.location,
+            description: this.state.description,
+            contactNumber: this.state.contactNumber,
+            pictures: this.state.pictures,
+            timings: this.state.timings,
+            cuisines: this.state.cuisines,
+            modeOfDelivery: this.state.modeOfDelivery
+        };
+
+        console.log(this.props)
+        let response = await this.props.updateRestaurantProfile({
+            variables: {
+                restaurantDetails: data,
+                id: this.state.restaurantName
+            }
+        })
+        console.log(response);
+
+        this.props.onSave(response.data.updateRestaurantProfile)
+        this.editDescCancel();
+        this.editContactCancel();
+        this.editLocCancel();
+    };
 
     onChangeRestaurantName = (e) => {
         this.setState({ restaurantName: e.target.value })
@@ -118,8 +148,28 @@ class RestaurantProfile extends Component {
     }
 }
 
+const updateRestaurantProfile = gql`
+mutation updateRestaurantProfile($restaurantDetails:restaurantInput!,$id:String!){
+    updateRestaurantProfile(restaurant:$restaurantDetails,id:$id)
+    {
+        _id
+        restaurantName
+        emailId
+        location
+        description
+        contactNumber
+        pictures
+        timings
+        cuisines
+        modeOfDelivery
+    }
+  }
+`;
+
 const mapStateToProps = (state) => {
     return { restaurantDetails: state.restaurantDetails,isLoggedIn:state.isLoggedIn }
 }
 
-export default connect(mapStateToProps, { restaurantProfile })(RestaurantProfile);
+export default compose(graphql(updateUserProfile, { name: "updateUserProfile" }),
+    connect(mapStateToProps, { restaurantProfile })(RestaurantProfile)
+);

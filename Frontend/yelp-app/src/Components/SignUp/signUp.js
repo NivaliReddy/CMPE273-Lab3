@@ -41,21 +41,42 @@ class Signup extends Component {
         }
         await this.props.signup(data);
         console.log(this.props.userSignupDetails);
-        if(this.props.userSignupDetails.status ===200){
+        if (this.props.userSignupDetails.status === 200) {
             var token = this.props.userSignupDetails.data;
             localStorage.setItem("token", token);
-      
+
             var decoded = jwt_decode(token.split(' ')[1]);
             const userdata = JSON.parse(decoded.user);
             console.log(userdata)
-            sessionStorage.setItem('id',userdata._id)
-            sessionStorage.setItem('isLoggedIn',true)
-            this.setState({redirect: <Redirect to="/" />})
+            sessionStorage.setItem('id', userdata._id)
+            sessionStorage.setItem('isLoggedIn', true)
+            this.setState({ redirect: <Redirect to="/" /> })
         }
-        else{
+        else {
             window.alert("User already exists!");
         }
     }
+
+    signup = async (e) => {
+        var headers = new Headers();
+        e.preventDefault();
+        const data = {
+            firstName: this.state.firstName,
+            lastName: this.state.lastName,
+            email: this.state.emailId,
+            password: this.state.password,
+            zipCode: this.state.zipCode
+        };
+        axios.defaults.withCredentials = true;
+        console.log(data);
+        let response = await this.props.userSignupMutation({
+            variables: {
+                userDetails: data
+            }
+        })
+        let user = { ...response.data.userSignup }
+        this.props.onLogin(userType, user);
+    };
 
     render = () => {
         return <div>
@@ -136,9 +157,26 @@ class Signup extends Component {
     }
 }
 
+const userSignupMutation = gql`
+mutation login($userDetails:UserInputType){
+    userLogin(userDetails:$userDetails)
+    {
+      firstName
+      lastName
+      emailId
+      zipCode
+    }
+  }
+`;
+
 const mapStateToProps = (state) => {
-    return { userDetails: state.userDetails,
-        userSignupDetails: state.userSignupDetails }
+    return {
+        userDetails: state.userDetails,
+        userSignupDetails: state.userSignupDetails
+    }
 }
 
-export default connect(mapStateToProps, { signup })(Signup);
+export default compose(
+    graphql(userSignupMutation, { name: "userSignupMutation" }),
+    connect(mapStateToProps, { signup })(Signup)
+);
