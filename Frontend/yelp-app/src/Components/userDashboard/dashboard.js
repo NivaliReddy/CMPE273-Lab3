@@ -6,8 +6,9 @@ import Map from "../googleMap/googleMap";
 import RestaurantCard from "../restaurantCard/restaurantCard";
 import Axios from "axios";
 import { GrPrevious, GrNext } from 'react-icons/gr';
-
-import { apiURL } from '../../util/config'
+import {graphql} from 'react-apollo'
+import { gql } from 'apollo-boost';
+import { apiURL } from '../../util/config';
 
 const _ = require("lodash");
 
@@ -134,8 +135,23 @@ class Dashboard extends React.PureComponent {
   };
 }
 
+const searchText=gql`
+{
+    restaurants{
+        _id
+      restaurantName
+      location
+      cuisines
+      modeOfDelivery
+    }
+  }
+`;
+
 const mapStateToProps = (state) => {
   return { restaurants: state.restaurants };
 };
 
-export default connect(mapStateToProps, { getAllRestaurants })(Dashboard);
+export default compose(
+  graphql(searchText),
+  connect(mapStateToProps, { getAllRestaurants })(Dashboard)
+);
